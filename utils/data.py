@@ -67,6 +67,7 @@ class iCIFAR100(iData):
 
 
 def build_transform(is_train, args):
+    print(f"------------build a new transform, is_train: {is_train}------------")
     input_size = 224
     resize_im = input_size > 32
     if is_train:
@@ -75,6 +76,12 @@ def build_transform(is_train, args):
         
         transform = [
             transforms.RandomResizedCrop(input_size, scale=scale, ratio=ratio),
+            transforms.RandomRotation(15),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+            transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1)),
+            transforms.RandomVerticalFlip(p=0.5),
+            transforms.RandomGrayscale(p=0.1),
+            transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
         ]

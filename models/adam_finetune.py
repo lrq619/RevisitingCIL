@@ -148,7 +148,7 @@ class Learner(BaseLearner):
                 )
             prog_bar.set_description(info)
 
-        logging.info(info)
+            logging.info(info)
 
     
 
