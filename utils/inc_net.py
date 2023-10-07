@@ -35,7 +35,6 @@ def get_convnet(args, pretrained=False):
     elif name=="pretrained_vit_b16_224" or name=="vit_base_patch16_224":
         model=timm.create_model("vit_base_patch16_224",pretrained=True, num_classes=0)
         model.out_dim=768
-        print(model.module)
         return model.eval()
     elif name=="pretrained_vit_b16_224_in21k" or name=="vit_base_patch16_224_in21k":
         model=timm.create_model("vit_base_patch16_224_in21k",pretrained=True, num_classes=0)
@@ -532,6 +531,7 @@ class SimpleVitNet(BaseNet):
 
     def update_fc(self, nb_classes, nextperiod_initialization=None):
         fc = self.generate_fc(self.feature_dim, nb_classes).cuda()
+        print(f"self.feature_dim: {self.feature_dim}, nb_classes: {nb_classes}")
         if self.fc is not None:
             nb_output = self.fc.out_features
             weight = copy.deepcopy(self.fc.weight.data)
@@ -576,12 +576,15 @@ class MultiBranchCosineIncrementalNet(BaseNet):
             self.modeltype='cnn'
         else:
             self.modeltype='vit'
+        self.new_fc = None
 
     def update_fc(self, nb_classes, nextperiod_initialization=None):
         fc = self.generate_fc(self._feature_dim, nb_classes).cuda()
         if self.fc is not None:
             nb_output = self.fc.out_features
+            print(f"nb_output for multi-branch:{nb_output}")
             weight = copy.deepcopy(self.fc.weight.data)
+            print(f"weight shape of multi-branch: {weight.shape}")
             fc.sigma.data = self.fc.sigma.data
             if nextperiod_initialization is not None:
                 weight = torch.cat([weight, nextperiod_initialization])
@@ -606,7 +609,15 @@ class MultiBranchCosineIncrementalNet(BaseNet):
             return out
         else:
             features = [convnet(x) for convnet in self.convnets]
-            features = torch.cat(features, 1)
+            feature_0 = features[0]
+            feature_1 = features[1]
+            
+            logits = self.new_fc(feature_1)['logits']
+            # print(f"shape of feature_0: {feature_0.shape}, shape of logits: {logits.shape}")
+            features = [feature_0, feature_1, logits]
+            features = torch.cat(features,1)
+            # print(f"shape of features: {features.shape}")
+            
             # import pdb; pdb.set_trace()
             out = self.fc(features)
             out.update({"features": features})
@@ -622,7 +633,6 @@ class MultiBranchCosineIncrementalNet(BaseNet):
         elif 'vpt' in self.args['convnet_type']:
             newargs=copy.deepcopy(self.args)
             newargs['convnet_type']=newargs['convnet_type'].replace('_vpt','')
-            print(newargs['convnet_type'])
             self.convnets.append(get_convnet(newargs)) #pretrained model without vpt
         elif 'adapter' in self.args['convnet_type']:
             newargs=copy.deepcopy(self.args)
@@ -633,8 +643,8 @@ class MultiBranchCosineIncrementalNet(BaseNet):
             self.convnets.append(get_convnet(self.args)) #the pretrained model itself
 
         self.convnets.append(tuned_model.convnet) #adappted tuned model
-    
-        self._feature_dim = self.convnets[0].out_dim * len(self.convnets) 
+        self.new_fc = tuned_model.fc
+        self._feature_dim = self.convnets[0].out_dim * len(self.convnets) + 30
         self.fc=self.generate_fc(self._feature_dim,self.args['init_cls'])
         
 
