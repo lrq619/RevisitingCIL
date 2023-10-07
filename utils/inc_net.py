@@ -614,7 +614,7 @@ class MultiBranchCosineIncrementalNet(BaseNet):
             
             logits = self.new_fc(feature_1)['logits']
             # print(f"shape of feature_0: {feature_0.shape}, shape of logits: {logits.shape}")
-            features = [feature_0, feature_1, logits]
+            features = [feature_0, logits]
             features = torch.cat(features,1)
             # print(f"shape of features: {features.shape}")
             
@@ -644,7 +644,7 @@ class MultiBranchCosineIncrementalNet(BaseNet):
 
         self.convnets.append(tuned_model.convnet) #adappted tuned model
         self.new_fc = tuned_model.fc
-        self._feature_dim = self.convnets[0].out_dim * len(self.convnets) + 30
+        self._feature_dim = self.convnets[0].out_dim + 30
         self.fc=self.generate_fc(self._feature_dim,self.args['init_cls'])
         
 
