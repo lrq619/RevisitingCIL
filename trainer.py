@@ -47,7 +47,7 @@ def _train(args):
      
     decay = get_exponent_sci(args["weight_decay"])
     lr = get_exponent_sci(args["min_lr"])
-    logfilename = f"useful_logs/e{epoch}_d{decay}_lr{lr}/prediction.log"
+    logfilename = f"useful_logs/e{epoch}_d{decay}_lr{lr}/prediction"
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(filename)s] => %(message)s",
