@@ -17,6 +17,14 @@ def train(args):
         args["device"] = device
         _train(args)
 
+def get_exponent_sci(n):
+    # Convert the number to scientific notation as a string
+    sci_str = "{:.0e}".format(n)
+    
+    # Split the string on 'e' and get the exponent part
+    magnitude = sci_str.split('e')[-1].lstrip('-').lstrip('+')
+    
+    return magnitude
 
 def _train(args):
 
@@ -35,6 +43,11 @@ def _train(args):
         args["seed"],
         args["convnet_type"],
     )
+    epoch = args["tuned_epoch"]
+     
+    decay = get_exponent_sci(args["weight_decay"])
+    lr = get_exponent_sci(args["min_lr"])
+    logfilename = f"useful_logs/e{epoch}_d{decay}_lr{lr}/prediction.log"
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(filename)s] => %(message)s",
