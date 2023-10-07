@@ -29,25 +29,17 @@ def get_exponent_sci(n):
 def _train(args):
 
     init_cls = 0 if args ["init_cls"] == args["increment"] else args["init_cls"]
-    logs_name = "logs/{}/{}/{}/{}".format(args["model_name"],args["dataset"], init_cls, args['increment'])
-    
-    if not os.path.exists(logs_name):
-        os.makedirs(logs_name)
 
-    logfilename = "logs/{}/{}/{}/{}/{}_{}_{}".format(
-        args["model_name"],
-        args["dataset"],
-        init_cls,
-        args["increment"],
-        args["prefix"],
-        args["seed"],
-        args["convnet_type"],
-    )
     epoch = args["tuned_epoch"]
      
     decay = get_exponent_sci(args["weight_decay"])
     lr = get_exponent_sci(args["min_lr"])
-    logfilename = f"useful_logs/e{epoch}_d{decay}_lr{lr}/prediction"
+    logs_name = f"logs/e{epoch}_d{decay}_lr{lr}"
+    
+    if not os.path.exists(logs_name):
+        os.makedirs(logs_name)
+
+    logfilename = f"{logs_name}/prediction"
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(filename)s] => %(message)s",
